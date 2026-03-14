@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平行人生模拟器</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --surface2: #f5f5f0;
+  --border: #e5e5e0;
+  --text: #2d2d2d;
+  --text2: #8b8b8a;
+  --accent: #b5651d;
+  --accent2: #d4823a;
+  --accent-bg: #fdf3e7;
+  --accent-border: #e8c8a0;
+  --green: #2d7d57;
+  --green-bg: #f0faf5;
+  --red: #c0392b;
+  --blue: #2c5f8a;
+}
+
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  line-height: 1.7;
+}
+
+/* ---- 导航 ---- */
+.nav {
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.nav-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-right: 32px;
+  letter-spacing: 0.02em;
+}
+.nav-tabs { display: flex; gap: 2px; }
+.nav-tab {
+  padding: 7px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text2);
+  transition: background .15s, color .15s;
+  border: none;
+  background: none;
+}
+.nav-tab:hover { color: var(--text); background: var(--surface2); }
+.nav-tab.active {
+  color: var(--accent);
+  background: var(--accent-bg);
+  font-weight: 500;
+}
+.nav-status {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* ---- 面板容器 ---- */
+.panels {
+  height: calc(100vh - 56px);
+  position: relative;
+}
+.panel {
+  display: none;
+  height: 100%;
+  overflow: hidden;
+}
+.panel.active { display: flex; }
+
+/* ---- 第一步：认识你 ---- */
+.chat-panel {
+  flex-direction: column;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 28px 24px;
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0 16px;
+}
+.msg {
+  margin-bottom: 18px;
+  max-width: 82%;
+  line-height: 1.75;
+  font-size: 15px;
+}
+.msg.user {
+  margin-left: auto;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--text);
+  padding: 11px 16px;
+  border-radius: 16px 16px 4px 16px;
+}
+.msg.ai {
+  color: var(--text);
+  padding: 10px 0;
+  max-width: 92%;
+}
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--border);
+}
+.chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  resize: none;
+  min-height: 48px;
+  max-height: 160px;
+  font-family: inherit;
+  transition: border-color .2s, box-shadow .2s;
+}
+.chat-input:focus {
+  outline: none;
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(181,101,29,0.08);
+}
+.chat-input::placeholder { color: var(--text2); }
+.btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background .15s, box-shadow .15s, transform .1s;
+  font-family: inherit;
+}
+.btn:active { transform: scale(0.98); }
+.btn-send {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(181,101,29,0.2);
+}
+.btn-send:hover {
+  background: var(--accent2);
+  box-shadow: 0 2px 6px rgba(181,101,29,0.25);
+}
+.btn-send:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.btn-outline {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  transition: border-color .15s, color .15s, background .15s;
+}
+.btn-outline:hover {
+  border-color: var(--accent2);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+.btn-ready {
+  background: var(--accent);
+  color: #fff;
+  margin-top: 10px;
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+  box-shadow: 0 1px 4px rgba(181,101,29,0.2);
+}
+.btn-ready:hover {
+  background: var(--accent2);
+  box-shadow: 0 3px 8px rgba(181,101,29,0.25);
+}
+
+/* ---- 第二步：人格档案 ---- */
+.persona-panel {
+  display: none;
+  height: 100%;
+}
+.persona-panel.active { display: flex; }
+.persona-left {
+  flex: 1;
+  padding: 28px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+.persona-right {
+  width: 360px;
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--surface2);
+}
+.persona-content {
+  white-space: pre-wrap;
+  line-height: 1.85;
+  font-size: 14px;
+  color: var(--text);
+}
+.persona-content h1 { font-size: 19px; color: var(--accent); margin-bottom: 16px; font-weight: 600; }
+.persona-content h2 { font-size: 14px; color: var(--accent2); margin: 22px 0 8px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+}
+.var-category {
+  margin-bottom: 22px;
+}
+.var-category-title {
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+}
+.var-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.var-item:hover {
+  border-color: var(--accent-border);
+  box-shadow: 0 1px 4px rgba(181,101,29,0.08);
+}
+.var-name { font-weight: 500; color: var(--text); }
+.var-value { color: var(--text2); margin-top: 3px; font-size: 12px; }
+.var-edit {
+  width: 100%;
+  padding: 6px 8px;
+  margin-top: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  display: none;
+  transition: border-color .15s;
+}
+.var-edit:focus { outline: none; border-color: var(--accent2); }
+.var-item.editing .var-edit { display: block; }
+.var-item.editing .var-value { display: none; }
+
+.custom-var-area {
+  margin-top: 14px;
+}
+.custom-var-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color .2s, box-shadow .2s;
+}
+.custom-var-input:focus {
+  outline: none;
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(181,101,29,0.08);
+}
+.custom-var-input::placeholder { color: var(--text2); }
+
+/* ---- 第三步：模拟 ---- */
+.sim-panel {
+  flex-direction: column;
+  max-width: 780px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 28px 24px;
+}
+.sim-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.sim-header .sim-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.01em;
+}
+.sim-tabs {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+.sim-tab {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  white-space: nowrap;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.sim-tab:hover { border-color: var(--accent-border); color: var(--text); }
+.sim-tab.active {
+  border-color: var(--accent-border);
+  color: var(--accent);
+  background: var(--accent-bg);
+  font-weight: 500;
+}
+.sim-output {
+  flex: 1;
+  overflow-y: auto;
+  line-height: 1.9;
+  font-size: 14px;
+  padding-bottom: 80px;
+  color: var(--text);
+}
+.sim-output h2 {
+  font-size: 15px;
+  color: var(--accent);
+  margin: 30px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.sim-output blockquote {
+  border-left: 3px solid var(--accent-border);
+  padding: 6px 14px;
+  margin: 10px 0;
+  color: var(--text2);
+  font-size: 13px;
+  background: var(--accent-bg);
+  border-radius: 0 6px 6px 0;
+}
+.sim-output strong { color: var(--accent); font-weight: 600; }
+.sim-output hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 28px 0;
+}
+
+.branch-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: none;
+  gap: 8px;
+}
+.branch-float.show { display: flex; }
+
+/* ---- 分支弹窗 ---- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(45,45,45,0.4);
+  backdrop-filter: blur(2px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  width: 460px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(45,45,45,0.12), 0 2px 8px rgba(45,45,45,0.06);
+}
+.modal h3 { font-size: 16px; color: var(--text); margin-bottom: 20px; font-weight: 600; }
+.modal label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+.modal input, .modal textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  margin-bottom: 14px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.modal input:focus, .modal textarea:focus {
+  outline: none;
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(181,101,29,0.08);
+}
+.modal textarea { min-height: 80px; resize: vertical; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ---- 加载动画 ---- */
+.loading {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blink 1.2s infinite;
+  margin-left: 4px;
+}
+.loading::before, .loading::after {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  position: absolute;
+}
+@keyframes blink {
+  0%, 100% { opacity: .2; }
+  50% { opacity: 1; }
+}
+
+.typing-indicator {
+  color: var(--text2);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+/* ---- Markdown 渲染 ---- */
+.md-render h1 { font-size: 19px; color: var(--accent); margin: 0 0 16px; font-weight: 600; }
+.md-render h2 { font-size: 14px; color: var(--accent2); margin: 22px 0 8px; font-weight: 600; }
+.md-render h3 { font-size: 13px; color: var(--text); margin: 16px 0 6px; font-weight: 600; }
+.md-render ul, .md-render ol { padding-left: 20px; }
+.md-render li { margin-bottom: 4px; }
+.md-render p { margin-bottom: 10px; }
+.md-render code {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+/* ---- 滚动条 ---- */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #d0d0cb; }
+
+/* ---- 额外输入区 ---- */
+.sim-extra {
+  margin-top: 12px;
+  flex-shrink: 0;
+}
+.sim-extra textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  min-height: 40px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.sim-extra textarea:focus {
+  outline: none;
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(181,101,29,0.08);
+}
+.sim-extra textarea::placeholder { color: var(--text2); }
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="nav">
+  <div class="nav-title">平行人生模拟器</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="chat">1. 认识你</button>
+    <button class="nav-tab" data-tab="persona" id="tab-persona">2. 你的原本</button>
+    <button class="nav-tab" data-tab="sim" id="tab-sim">3. 平行人生</button>
+  </div>
+  <div class="nav-status" id="status"></div>
+</nav>
+
+<!-- 面板 -->
+<div class="panels">
+
+  <!-- 第一步：对话 -->
+  <div class="panel active chat-panel" id="panel-chat">
+    <div class="chat-messages" id="chat-messages"></div>
+    <div id="persona-ready-btn" style="display:none;">
+      <button class="btn btn-ready" onclick="extractPersona()">生成我的原本</button>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chat-input"
+        placeholder="想到什么说什么..."
+        rows="1"
+        onkeydown="handleChatKey(event)"></textarea>
+      <button class="btn btn-send" id="btn-send" onclick="sendChat()">发送</button>
+    </div>
+  </div>
+
+  <!-- 第二步：人格档案 -->
+  <div class="panel persona-panel" id="panel-persona">
+    <div class="persona-left">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span class="section-title" style="margin:0">人格档案</span>
+        <button class="btn btn-outline" style="padding:4px 12px;font-size:12px" id="btn-edit-persona" onclick="togglePersonaEdit()">编辑</button>
+        <button class="btn btn-send" style="padding:4px 12px;font-size:12px;display:none" id="btn-save-persona" onclick="savePersona()">保存</button>
+      </div>
+      <div class="persona-content md-render" id="persona-display">
+        正在生成人格档案...
+      </div>
+      <textarea id="persona-editor" style="display:none;width:100%;min-height:500px;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;line-height:1.8;resize:vertical;"></textarea>
+    </div>
+    <div class="persona-right">
+      <div class="section-title">变量面板</div>
+      <div id="variables-panel">
+        <div class="typing-indicator">正在分析变量...</div>
+      </div>
+      <div class="custom-var-area">
+        <input class="custom-var-input" id="custom-var"
+          placeholder="自建变量：输入后回车（如：28岁遇到改变命运的合伙人）"
+          onkeydown="if(event.key==='Enter')addCustomVar()">
+      </div>
+      <button class="btn btn-ready" style="margin-top:16px" onclick="startSim()">
+        开始模拟
+      </button>
+    </div>
+  </div>
+
+  <!-- 第三步：模拟 -->
+  <div class="panel sim-panel" id="panel-sim">
+    <div class="sim-header">
+      <span class="sim-title">平行人生</span>
+      <button class="btn btn-outline" onclick="openBranchModal()" id="btn-branch"
+        style="margin-left:auto; display:none;">
+        从某个节点分支
+      </button>
+    </div>
+    <div class="sim-tabs" id="sim-tabs">
+      <div class="sim-tab active" data-branch="0">原始线</div>
+    </div>
+    <div class="sim-extra">
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:12px" onclick="setSimPreset('默认：不美化不悲观，如实推演')">如实推演</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:12px" onclick="setSimPreset('这条线要更悲观一些，多一些错误选择和走不通的路')">悲观线</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:12px" onclick="setSimPreset('重点模拟职业和事业发展')">聚焦事业</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:12px" onclick="setSimPreset('重点模拟感情和家庭关系')">聚焦感情</button>
+      </div>
+      <textarea id="sim-instructions"
+        placeholder="调整模拟方向（可选）：点击上面的预设，或自己写。比如"如果 AI 行业在2028年崩盘"..."></textarea>
+    </div>
+    <div class="sim-output md-render" id="sim-output"></div>
+  </div>
+
+</div>
+
+<!-- 分支弹窗 -->
+<div class="modal-overlay" id="branch-modal">
+  <div class="modal">
+    <h3>创建分支</h3>
+    <label>从几岁开始分叉？</label>
+    <input type="text" id="branch-age" placeholder="比如：28">
+    <label>改变什么条件？</label>
+    <textarea id="branch-mod" placeholder="比如：没有去厦门大学，留在莒县读了本地大学&#10;或者：遇到了一个改变命运的投资人&#10;或者：AI 行业在这一年突然崩盘"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeBranchModal()">取消</button>
+      <button class="btn btn-send" onclick="runBranch()">开始分支模拟</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- 状态 ----
+let chatHistory = [];
+let personaText = '';
+let variablesData = {};
+let simBranches = []; // [{name, content}]
+let activeBranch = 0;
+
+// ---- 导航 ----
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.tab;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + target).classList.add('active');
+  });
+});
+
+// ---- 对话 ----
+function addMessage(role, content) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = role === 'ai' ? renderMd(content) : escapeHtml(content);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage('user', msg);
+
+  const btn = document.getElementById('btn-send');
+  btn.disabled = true;
+  setStatus('思考中...');
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: chatHistory }),
+    });
+    const data = await resp.json();
+    chatHistory = data.history;
+    addMessage('ai', data.reply);
+
+    if (data.persona_ready) {
+      document.getElementById('persona-ready-btn').style.display = 'block';
+    }
+  } catch (err) {
+    addMessage('ai', '出错了：' + err.message);
+  }
+
+  btn.disabled = false;
+  setStatus('');
+}
+
+// ---- 提取人格档案 ----
+async function extractPersona() {
+  setStatus('正在生成人格档案...');
+  switchTab('persona');
+
+  try {
+    const resp = await fetch('/api/extract-persona', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history: chatHistory }),
+    });
+    const data = await resp.json();
+    personaText = data.persona;
+    document.getElementById('persona-display').innerHTML = renderMd(personaText);
+    setStatus('');
+
+    // 生成变量
+    generateVariables();
+  } catch (err) {
+    document.getElementById('persona-display').textContent = '生成失败：' + err.message;
+    setStatus('');
+  }
+}
+
+// ---- 变量 ----
+async function generateVariables() {
+  setStatus('正在分析变量...');
+  try {
+    const resp = await fetch('/api/generate-variables', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ persona: personaText }),
+    });
+    const data = await resp.json();
+    variablesData = data.variables;
+    renderVariables();
+    setStatus('');
+  } catch (err) {
+    document.getElementById('variables-panel').textContent = '变量生成失败：' + err.message;
+    setStatus('');
+  }
+}
+
+function renderVariables() {
+  const panel = document.getElementById('variables-panel');
+  const labels = { personal: '个人变量', interpersonal: '人际变量', social: '社会变量' };
+  let html = '';
+
+  for (const [cat, label] of Object.entries(labels)) {
+    const items = variablesData[cat] || [];
+    if (!items.length) continue;
+    html += `<div class="var-category">
+      <div class="var-category-title">${label}</div>`;
+    items.forEach((v, i) => {
+      html += `<div class="var-item" onclick="toggleVarEdit(this)">
+        <div class="var-name">${v.name || ''}</div>
+        <div class="var-value">${v.current || ''}</div>
+        <input class="var-edit" value="${escapeAttr(v.current || '')}"
+          data-cat="${cat}" data-idx="${i}"
+          onchange="updateVar(this)"
+          onclick="event.stopPropagation()">
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if (variablesData.raw) {
+    html += `<div style="margin-top:12px;font-size:12px;color:var(--text2)">
+      原始输出：<pre style="white-space:pre-wrap">${escapeHtml(variablesData.raw)}</pre></div>`;
+  }
+
+  panel.innerHTML = html;
+}
+
+function toggleVarEdit(el) {
+  el.classList.toggle('editing');
+  if (el.classList.contains('editing')) {
+    el.querySelector('.var-edit').focus();
+  }
+}
+
+function updateVar(input) {
+  const cat = input.dataset.cat;
+  const idx = parseInt(input.dataset.idx);
+  if (variablesData[cat] && variablesData[cat][idx]) {
+    variablesData[cat][idx].current = input.value;
+  }
+  const item = input.closest('.var-item');
+  item.querySelector('.var-value').textContent = input.value;
+  item.classList.remove('editing');
+}
+
+function addCustomVar() {
+  const input = document.getElementById('custom-var');
+  const val = input.value.trim();
+  if (!val) return;
+
+  if (!variablesData.personal) variablesData.personal = [];
+  variablesData.personal.push({
+    id: 'custom_' + Date.now(),
+    name: '自建变量',
+    description: val,
+    current: val,
+    impact: '用户自定义',
+  });
+  renderVariables();
+  input.value = '';
+}
+
+// ---- 模拟 ----
+async function startSim() {
+  switchTab('sim');
+  const output = document.getElementById('sim-output');
+  output.innerHTML = '';
+  simBranches = [{ name: '原始线', content: '' }];
+  activeBranch = 0;
+  renderSimTabs();
+
+  const instructions = document.getElementById('sim-instructions').value.trim();
+
+  setStatus('模拟运行中...');
+  document.getElementById('btn-branch').style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/simulate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        persona: personaText,
+        variables: variablesData,
+        custom_instructions: instructions,
+      }),
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.done) break;
+          if (data.text) {
+            simBranches[0].content += data.text;
+            output.innerHTML = renderMd(simBranches[0].content);
+            output.scrollTop = output.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+  } catch (err) {
+    output.innerHTML += `<p style="color:var(--red)">出错：${err.message}</p>`;
+  }
+
+  setStatus('');
+  document.getElementById('btn-branch').style.display = 'inline-flex';
+}
+
+// ---- 分支 ----
+function openBranchModal() {
+  document.getElementById('branch-modal').classList.add('show');
+}
+function closeBranchModal() {
+  document.getElementById('branch-modal').classList.remove('show');
+}
+
+async function runBranch() {
+  const age = document.getElementById('branch-age').value.trim();
+  const mod = document.getElementById('branch-mod').value.trim();
+  if (!age || !mod) return;
+
+  closeBranchModal();
+
+  const branchIdx = simBranches.length;
+  const branchName = `分支${branchIdx}: ${age}岁 · ${mod.slice(0, 15)}...`;
+  simBranches.push({ name: branchName, content: '' });
+  activeBranch = branchIdx;
+  renderSimTabs();
+
+  const output = document.getElementById('sim-output');
+  output.innerHTML = '';
+  setStatus('分支模拟中...');
+
+  // 提取分支点之前的时间线
+  const mainContent = simBranches[0].content;
+  const agePattern = new RegExp(`## ${parseInt(age) + 1}岁|## ${parseInt(age)}.*?\\n## `, 's');
+  const match = mainContent.search(agePattern);
+  const timelineBefore = match > 0 ? mainContent.slice(0, match) : mainContent.slice(0, 2000);
+
+  try {
+    const resp = await fetch('/api/branch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        persona: personaText,
+        timeline_before: timelineBefore,
+        branch_age: age,
+        modification: mod,
+      }),
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.done) break;
+          if (data.text) {
+            simBranches[branchIdx].content += data.text;
+            output.innerHTML = renderMd(simBranches[branchIdx].content);
+            output.scrollTop = output.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+  } catch (err) {
+    output.innerHTML += `<p style="color:var(--red)">出错：${err.message}</p>`;
+  }
+
+  setStatus('');
+}
+
+function renderSimTabs() {
+  const container = document.getElementById('sim-tabs');
+  container.innerHTML = simBranches.map((b, i) =>
+    `<div class="sim-tab ${i === activeBranch ? 'active' : ''}"
+      data-branch="${i}" onclick="switchBranch(${i})">${b.name}</div>`
+  ).join('');
+}
+
+function switchBranch(idx) {
+  activeBranch = idx;
+  renderSimTabs();
+  const output = document.getElementById('sim-output');
+  output.innerHTML = renderMd(simBranches[idx].content || '（空）');
+}
+
+// ---- 工具函数 ----
+function switchTab(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function setStatus(text) {
+  document.getElementById('status').textContent = text;
+}
+
+function escapeHtml(s) {
+  const el = document.createElement('div');
+  el.textContent = s;
+  return el.innerHTML;
+}
+
+function escapeAttr(s) {
+  return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function renderMd(text) {
+  if (!text) return '';
+  return text
+    // headers
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    // bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // blockquote
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    // hr
+    .replace(/^---$/gm, '<hr>')
+    // list
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    // code block
+    .replace(/```[\s\S]*?```/g, m =>
+      '<pre style="background:var(--bg);padding:12px;border-radius:8px;font-size:13px;overflow-x:auto">'
+      + m.replace(/```\w*\n?/g, '').replace(/```/g, '') + '</pre>')
+    // inline code
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    // paragraphs
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+}
+
+// ---- 自动高度 ----
+document.getElementById('chat-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+});
+
+// ---- 人格档案编辑 ----
+function togglePersonaEdit() {
+  const display = document.getElementById('persona-display');
+  const editor = document.getElementById('persona-editor');
+  const btnEdit = document.getElementById('btn-edit-persona');
+  const btnSave = document.getElementById('btn-save-persona');
+
+  editor.value = personaText;
+  display.style.display = 'none';
+  editor.style.display = 'block';
+  btnEdit.style.display = 'none';
+  btnSave.style.display = 'inline-flex';
+  editor.focus();
+}
+
+function savePersona() {
+  const display = document.getElementById('persona-display');
+  const editor = document.getElementById('persona-editor');
+  const btnEdit = document.getElementById('btn-edit-persona');
+  const btnSave = document.getElementById('btn-save-persona');
+
+  personaText = editor.value;
+  display.innerHTML = renderMd(personaText);
+  display.style.display = 'block';
+  editor.style.display = 'none';
+  btnEdit.style.display = 'inline-flex';
+  btnSave.style.display = 'none';
+
+  // 保存到后端
+  fetch('/api/save-persona', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ persona: personaText }),
+  });
+}
+
+// ---- 模拟预设 ----
+function setSimPreset(text) {
+  document.getElementById('sim-instructions').value = text;
+}
+
+// ---- 初始欢迎语 ----
+window.addEventListener('DOMContentLoaded', () => {
+  addMessage('ai', '嘿，欢迎来到平行人生模拟器。\n\n在这里，你可以看到无数个"世界另一个你"的人生。\n\n我们先认识一下——介绍一下你自己吧。你是谁，你在做什么，你在乎什么？\n\n想到什么说什么，没有标准答案。');
+});
+</script>
+</body>
+</html>
