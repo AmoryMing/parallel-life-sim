@@ -1,84 +1,91 @@
-# 平行人生模拟器 — Your life's what-ifs
+# Parallel Life Simulator -- Your Life's What-Ifs
 
-一个基于个人数据的**人生仿真引擎**，帮助用户探索自己人生的多重 if 线。
+**Monte Carlo simulation of life trajectories based on real decision variables.**
 
-## 这个产品是什么
+基于真实人生决策变量的蒙特卡洛人生轨迹模拟器。
 
-MVP 规划有几板块内容：
+---
 
-1. **造一个"我的智能体复刻版"**：经用户许可后，把一个人的真实数据（性格、经历、习惯、能力）喂进去，生成一个 AI 版的自己
-2. **改条件，看变化**：改变这个"数字的我"的某些设定（比如换个城市、换个专业、换个性格），或者改变环境（经济好/差、遇到贵人/没遇到），然后让它跑起来，看这个"世另我"会怎么活
-3. **回到过去**：假如当年做了不同的选择，命运会怎样？
-4. **问问未来**：让一个"跑到了10年后的我"给现在的自己提建议
-5. **平行互联**：假设不同平行世界的自己对话会怎么样？
+## What is this / 这是什么
 
-### 核心体验
+Parallel Life Simulator lets you explore the roads not taken. Feed it your real personality, experiences, and life conditions -- it runs Monte Carlo simulations to show how your life might have unfolded under different choices.
 
-用户打开产品，看到一棵**分叉的树**（或一片平行宇宙的星图）。树干是"原始的你"，每个分支是一个"世另我"。有的分支还在生长，有的已经结束（这个版本的人生走完了）。用户可以：
+平行人生模拟器让你探索那些"没走的路"。输入你的真实性格、经历和生活条件，它会通过蒙特卡洛模拟，展示你在不同选择下的人生可能走向。
 
-- **观察**：缩放时间线，宏观看全局，微观看日志
-- **对话**：跟任何版本的自己聊天，包括已经死去的版本
-- **连线**：把两个版本的自己连在一起对话，看火花
-- **分裂**：从任何版本的任何节点再分出新分支
-- **凭吊**：看死去版本的墓志铭，听别人对他的评价
+### Core Parameters / 核心参数
 
-## 在线体验
+- **34 social variables** across 5 layers: personal, interpersonal, social, national, international
+- **67 life events** as structured simulation templates
+- **5 层 34 个社会变量** + **67 个人生事件模板**
 
-**https://rpg-usually-eligible-nine.trycloudflare.com**
+### What makes it different / 差异化
 
-无需注册，打开即用。
+[Simile](https://simile.ai/) raised $100M to prove the life simulation market exists. Their approach: fictional characters in game-like worlds.
 
-## 本地部署
+Ours: **simulate YOUR life, with YOUR real choices.** Not a game character -- you.
+
+Simile 拿了 1 亿美金融资，证明了"人生模拟"这个市场真实存在。他们的路线是虚构角色 + 游戏世界。
+
+我们的路线：**模拟你自己的人生，基于你真实的选择。** 不是游戏角色，是你。
+
+## Quick Start / 快速开始
 
 ```bash
-# 克隆仓库
+# Clone
 git clone https://github.com/AmoryMing/parallel-life-sim.git
 cd parallel-life-sim
 
-# 创建虚拟环境
+# Setup
 python3 -m venv .venv
 source .venv/bin/activate
-
-# 安装依赖
 pip install -r requirements.txt
 
-# 配置 API Key（支持 OpenAI 兼容协议的任何大模型）
-# 在 app.py 中修改 base_url 和 api_key
+# Configure API key (any OpenAI-compatible LLM)
+export DASHSCOPE_API_KEY="your-api-key-here"
 
-# 启动
+# Run
 python3 app.py
 ```
 
-打开浏览器访问 http://localhost:5678
+Open http://localhost:5678 in your browser.
 
-## 使用流程
+浏览器打开 http://localhost:5678 即可使用。
 
-1. **认识你** — 在对话框里介绍自己，AI 会追问细节
-2. **你的原本** — 查看 AI 生成的人格档案和变量面板，可以编辑修改
-3. **平行人生** — 选择模拟预设（如实推演/悲观线/聚焦事业），开始模拟
-4. 模拟完成后可以从任意节点**创建分支**，改变一个条件重新跑
+## How it works / 使用流程
 
-## 技术栈
+1. **Know you / 认识你** -- Chat with the AI interviewer, it builds your personality profile
+2. **Your baseline / 你的原本** -- Review the AI-generated persona card and 34-variable panel
+3. **Parallel lives / 平行人生** -- Pick a simulation preset (realistic / pessimistic / career-focused) and run
+4. **Branch / 分支** -- Fork from any point, change one condition, re-simulate
 
-- **后端**: Python + Flask
-- **前端**: 原生 HTML/CSS/JS（单文件）
-- **AI**: 支持 OpenAI 兼容 API（默认千问 qwen3.5-plus）
-- **设计风格**: 浅色主题，参考 Notion + Claude
+## Tech Stack / 技术栈
 
-## 路线图
+| Component | Technology |
+|-----------|------------|
+| Backend | Python (Flask) |
+| Frontend | Vanilla HTML/CSS/JS |
+| AI Engine | Qwen 3.5-plus (any OpenAI-compatible API) |
+| Simulation | Monte Carlo method |
+| Design | Light theme, Notion + Claude aesthetic |
 
-- [x] 对话式人格采集
-- [x] AI 人格档案生成
-- [x] 5层变量系统（个人/人际/社会/国家/国际）
-- [x] 人生模拟（流式输出）
-- [x] 分支系统
-- [ ] 步进式仿真引擎（每步可暂停/对话/回溯）
-- [ ] 分层记忆系统
-- [ ] 知识图谱 / 记忆图谱可视化
-- [ ] 跟任意年龄的"世另我"对话
-- [ ] 社会事件库（59个结构化事件模板）
-- [ ] 多版本互相对话
+**Version: v2.1.1**
 
-## 许可证
+## Roadmap / 路线图
 
-[AGPL-3.0](LICENSE)
+- [x] Conversational personality profiling / 对话式人格采集
+- [x] AI persona generation / AI 人格档案生成
+- [x] 5-layer variable system / 5 层变量系统
+- [x] Life simulation with streaming output / 人生模拟（流式输出）
+- [x] Branch system / 分支系统
+- [ ] Step-by-step simulation engine (pause / dialogue / rewind) / 步进式仿真引擎
+- [ ] Layered memory system / 分层记忆系统
+- [ ] Knowledge graph visualization / 知识图谱可视化
+- [ ] Talk to any-age version of yourself / 跟任意年龄的"世另我"对话
+- [ ] Social event library (59 structured templates) / 社会事件库
+- [ ] Multi-version cross-dialogue / 多版本互相对话
+
+## License / 许可证
+
+[Apache 2.0](LICENSE)
+
+Copyright 2026 Ming Mu (AmoryMing)

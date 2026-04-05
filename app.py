@@ -11,7 +11,7 @@ app.secret_key = os.urandom(24)
 
 client = OpenAI(
     base_url="https://coding.dashscope.aliyuncs.com/v1",
-    api_key=os.environ.get("DASHSCOPE_API_KEY", "sk-sp-9aa0e27a5f7f4ccda382862281e7dedd"),
+    api_key=os.environ.get("DASHSCOPE_API_KEY", "your-api-key-here"),
 )
 
 MODEL = "qwen3.5-plus"
